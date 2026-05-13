@@ -1,203 +1,311 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'administrador') {
-    header("Location: ../usuarios/login.php");
+﻿<?php
+/**
+ * VISTA: Dashboard Administrador
+ * Cargada por: controllers/dashboardadmincontroller.php
+ */
+if (!isset($totalUsuarios)) {
+    header("Location: /inventory/controllers/dashboardadmincontroller.php");
     exit;
 }
 
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../models/Usuario.php';
-
-$database = new Database();
-$db = $database->conectar();
-$usuarioModel = new Usuario($db);
-
-$usuario = $_SESSION['usuario'];
-$nombre  = $usuario['nombre'] ?? 'Usuario';
-$rol     = $usuario['rol']    ?? 'administrador';
-$correo  = $usuario['correo'] ?? '';
-
-$GLOBALS['nombre']  = $nombre;
-$GLOBALS['rol']     = $rol;
-$GLOBALS['correo']  = $correo;
-$GLOBALS['usuario'] = $usuario;
-
-$titulo = "Dashboard Administrador";
 require_once __DIR__ . '/../layouts/header.php';
 require_once __DIR__ . '/../layouts/sidebar.php';
 ?>
 
-<!-- Dashboard Content -->
-<div class="space-y-6 animate-fade-in">
-    <!-- Welcome Section -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-card">
-        <div class="flex items-center justify-between">
+<style>
+.stat-card {
+    border-radius:14px; padding:1.35rem 1.4rem; color:white;
+    position:relative; overflow:hidden; transition:transform .2s, box-shadow .2s;
+}
+.stat-card:hover { transform:translateY(-3px); box-shadow:0 14px 32px rgba(0,0,0,.18); }
+.stat-card::after {
+    content:''; position:absolute; top:-18px; right:-18px;
+    width:90px; height:90px; background:rgba(255,255,255,.08); border-radius:50%;
+}
+.sc-label  { font-size:.78rem; opacity:.82; font-weight:500; margin-bottom:.3rem; }
+.sc-value  { font-size:2rem; font-weight:800; line-height:1; }
+.sc-footer { font-size:.72rem; opacity:.75; margin-top:.5rem; display:flex; align-items:center; gap:.3rem; }
+.sc-icon {
+    position:absolute; top:1.1rem; right:1.1rem;
+    width:42px; height:42px; background:rgba(255,255,255,.15);
+    border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.15rem;
+}
+.dash-card {
+    background:white; border-radius:14px; border:1px solid #e2e8f0;
+    box-shadow:0 1px 4px rgba(0,0,0,.05); padding:1.35rem 1.4rem; transition:box-shadow .2s;
+}
+.dash-card:hover { box-shadow:0 4px 18px rgba(0,0,0,.08); }
+.card-title {
+    font-size:.92rem; font-weight:700; color:#1e293b;
+    margin-bottom:1rem; display:flex; align-items:center; gap:.45rem;
+}
+.card-title i { color:#1e3a8a; }
+.qa-btn {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:.45rem; padding:1rem .5rem; border-radius:12px; text-decoration:none;
+    font-size:.78rem; font-weight:600; color:#374151;
+    border:none; background:none; cursor:pointer; transition:transform .2s; width:100%;
+}
+.qa-btn:hover { transform:translateY(-2px); color:#374151; }
+.qa-icon {
+    width:42px; height:42px; border-radius:11px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; transition:transform .2s;
+}
+.qa-btn:hover .qa-icon { transform:scale(1.1); }
+.u-table { width:100%; border-collapse:collapse; }
+.u-table th {
+    font-size:.7rem; font-weight:700; color:#94a3b8;
+    text-transform:uppercase; letter-spacing:.5px;
+    padding:.5rem .75rem; text-align:left; border-bottom:1px solid #f1f5f9;
+}
+.u-table td {
+    padding:.65rem .75rem; font-size:.83rem; color:#374151;
+    border-bottom:1px solid #f8fafc; vertical-align:middle;
+}
+.u-table tr:last-child td { border-bottom:none; }
+.u-table tr:hover td { background:#f8fafc; }
+.avatar-sm {
+    width:32px; height:32px; border-radius:50%;
+    background:#11225a;
+    display:inline-flex; align-items:center; justify-content:center;
+    color:white; font-size:.75rem; font-weight:700; flex-shrink:0;
+}
+.role-badge {
+    display:inline-flex; align-items:center; gap:.3rem;
+    padding:.18rem .6rem; border-radius:20px; font-size:.7rem; font-weight:600;
+}
+.role-admin    { background:#dbeafe; color:#1e3a8a; }
+.role-vendedor { background:#dbeafe; color:#2563eb; }
+.stock-alert {
+    display:flex; align-items:center; gap:.75rem;
+    padding:.7rem .85rem; border-radius:10px;
+    background:#fef9c3; border:1px solid #fde68a;
+    font-size:.82rem; color:#92400e;
+}
+.stock-alert i { color:#d97706; flex-shrink:0; }
+.g4  { display:grid; grid-template-columns:repeat(4,1fr); gap:1.1rem; }
+.g3  { display:grid; grid-template-columns:repeat(3,1fr); gap:1.1rem; }
+.g2  { display:grid; grid-template-columns:repeat(2,1fr); gap:1.1rem; }
+.gqa { display:grid; grid-template-columns:repeat(5,1fr); gap:.65rem; }
+.gap { display:flex; flex-direction:column; gap:1.2rem; }
+@media(max-width:1100px){ .g4{grid-template-columns:repeat(2,1fr);} .gqa{grid-template-columns:repeat(3,1fr);} }
+@media(max-width:768px) { .g4{grid-template-columns:1fr;} .g3{grid-template-columns:1fr;} .g2{grid-template-columns:1fr;} .gqa{grid-template-columns:repeat(2,1fr);} }
+</style>
+
+<div class="gap">
+
+    <!-- Bienvenida -->
+    <div class="dash-card" style="background:#11225a;border:none;color:white;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
             <div>
-                <h2 class="text-3xl font-bold text-gray-800">Bienvenido al <span class="text-blue-600">Dashboard</span></h2>
-                <p class="text-gray-600 mt-2">Panel principal de gestión del sistema de inventario</p>
+                <p style="font-size:.78rem;opacity:.65;margin-bottom:.25rem;">
+                    <?php
+                    $dias   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+                    $meses  = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+                    echo $dias[date('w')] . ', ' . date('d') . ' de ' . $meses[date('n')-1] . ' de ' . date('Y');
+                    ?>
+                </p>
+                <h2 style="font-size:1.45rem;font-weight:800;margin:0;">
+                    Bienvenido, <?= htmlspecialchars($nombre) ?>
+                </h2>
+                <p style="font-size:.85rem;opacity:.72;margin-top:.3rem;">
+                    Panel de administraci&oacute;n &mdash; Sistema de Inventario
+                </p>
             </div>
-            <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span class="text-sm text-gray-500">Sistema en línea</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stats Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white hover-card">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-blue-100 text-sm">Total Productos</p>
-                    <p class="text-3xl font-bold mt-2">1,234</p>
-                </div>
-                <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-box text-2xl"></i>
-                </div>
-            </div>
-            <div class="mt-4 text-sm text-blue-100">
-                <i class="fas fa-arrow-up mr-1"></i> 12% desde el mes pasado
-            </div>
-        </div>
-
-        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white hover-card">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-green-100 text-sm">Ventas del Mes</p>
-                    <p class="text-3xl font-bold mt-2">$45,678</p>
-                </div>
-                <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-chart-line text-2xl"></i>
-                </div>
-            </div>
-            <div class="mt-4 text-sm text-green-100">
-                <i class="fas fa-arrow-up mr-1"></i> 8% desde el mes anterior
-            </div>
-        </div>
-
-        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white hover-card">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-purple-100 text-sm">Usuarios Activos</p>
-                    <p class="text-3xl font-bold mt-2">89</p>
-                </div>
-                <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-users text-2xl"></i>
-                </div>
-            </div>
-            <div class="mt-4 text-sm text-purple-100">
-                <i class="fas fa-arrow-up mr-1"></i> 5% nuevos esta semana
-            </div>
-        </div>
-
-        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white hover-card">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-orange-100 text-sm">Compras Mes</p>
-                    <p class="text-3xl font-bold mt-2">$23,456</p>
-                </div>
-                <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-shopping-cart text-2xl"></i>
-                </div>
-            </div>
-            <div class="mt-4 text-sm text-orange-100">
-                <i class="fas fa-arrow-down mr-1"></i> 3% desde el mes pasado
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-card">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Acciones Rápidas</h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a href="/inventory/views/usuarios/gestion/index.php" class="flex flex-col items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors group">
-                <i class="fas fa-users text-blue-600 text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                <span class="text-sm text-gray-700">Gestión Usuarios</span>
+            <a href="/inventory/controllers/adminusuariocontroller.php?accion=index"
+               style="display:inline-flex;align-items:center;gap:.4rem;
+                      background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+                      color:white;text-decoration:none;border-radius:9px;
+                      padding:.45rem 1rem;font-size:.8rem;font-weight:600;">
+                <i class="fas fa-users"></i> Gestionar Usuarios
             </a>
-            <button class="flex flex-col items-center justify-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors group">
-                <i class="fas fa-plus-circle text-green-600 text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                <span class="text-sm text-gray-700">Agregar Producto</span>
-            </button>
-            <button class="flex flex-col items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors group">
-                <i class="fas fa-tag text-purple-600 text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                <span class="text-sm text-gray-700">Nueva Categoría</span>
-            </button>
-            <button class="flex flex-col items-center justify-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors group">
-                <i class="fas fa-file-invoice text-orange-600 text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                <span class="text-sm text-gray-700">Nueva Compra</span>
-            </button>
         </div>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-card">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Actividad Reciente del Sistema</h3>
-        <div class="space-y-4">
-            <div class="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-box text-blue-600"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-800">Nuevo producto agregado</p>
-                    <p class="text-xs text-gray-500">Laptop Dell XPS 13 - hace 5 minutos</p>
-                </div>
+    <!-- Stats principales -->
+    <div class="g4">
+        <div class="stat-card" style="background:#11225a;">
+            <div class="sc-icon"><i class="fas fa-box-open"></i></div>
+            <div class="sc-label">Total Productos</div>
+            <div class="sc-value"><?= number_format($totalProductos) ?></div>
+            <div class="sc-footer">
+                <?php if ($stockBajo > 0): ?>
+                    <i class="fas fa-triangle-exclamation" style="color:#fbbf24;"></i> <?= $stockBajo ?> con stock bajo
+                <?php else: ?>
+                    <i class="fas fa-check-circle"></i> Stock en orden
+                <?php endif; ?>
             </div>
-            <div class="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-chart-line text-green-600"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-800">Venta completada</p>
-                    <p class="text-xs text-gray-500">Orden #1234 - $1,234.56 - hace 15 minutos</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-shopping-cart text-orange-600"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-800">Compra registrada</p>
-                    <p class="text-xs text-gray-500">Proveedor TechCorp - $5,678.90 - hace 1 hora</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-user text-purple-600"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-800">Nuevo usuario registrado</p>
-                    <p class="text-xs text-gray-500">Ana Martínez - hace 2 horas</p>
-                </div>
+        </div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#3b82f6,#1e3a8a);">
+            <div class="sc-icon"><i class="fas fa-users"></i></div>
+            <div class="sc-label">Usuarios Registrados</div>
+            <div class="sc-value"><?= $totalUsuarios ?></div>
+            <div class="sc-footer">
+                <i class="fas fa-user-shield"></i> <?= $totalAdmins ?> admin
+                &nbsp;&middot;&nbsp;
+                <i class="fas fa-user-tag"></i> <?= $totalVendedores ?> vendedor<?= $totalVendedores !== 1 ? 'es' : '' ?>
             </div>
         </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-card">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Ventas Mensuales</h3>
-            <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                <div class="text-center text-gray-500">
-                    <i class="fas fa-chart-bar text-4xl mb-2"></i>
-                    <p>Gráfico de ventas</p>
-                </div>
+    <!-- Stats secundarias -->
+    <div class="g3">
+        <div class="dash-card" style="display:flex;align-items:center;gap:1rem;">
+            <div style="width:48px;height:48px;border-radius:12px;background:#dbeafe;display:flex;align-items:center;justify-content:center;color:#1e3a8a;font-size:1.3rem;flex-shrink:0;">
+                <i class="fas fa-tags"></i>
+            </div>
+            <div>
+                <div style="font-size:.78rem;color:#94a3b8;font-weight:500;">Categor&iacute;as</div>
+                <div style="font-size:1.6rem;font-weight:800;color:#1e293b;line-height:1.1;"><?= $totalCategorias ?></div>
             </div>
         </div>
-        
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-card">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Productos por Categoría</h3>
-            <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                <div class="text-center text-gray-500">
-                    <i class="fas fa-chart-pie text-4xl mb-2"></i>
-                    <p>Gráfico de categorías</p>
+        <div class="dash-card" style="display:flex;align-items:center;gap:1rem;">
+            <div style="width:48px;height:48px;border-radius:12px;background:#dcfce7;display:flex;align-items:center;justify-content:center;color:#16a34a;font-size:1.3rem;flex-shrink:0;">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div>
+                <div style="font-size:.78rem;color:#94a3b8;font-weight:500;">Administradores</div>
+                <div style="font-size:1.6rem;font-weight:800;color:#1e293b;line-height:1.1;"><?= $totalAdmins ?></div>
+            </div>
+        </div>
+        <div class="dash-card" style="display:flex;align-items:center;gap:1rem;">
+            <div style="width:48px;height:48px;border-radius:12px;background:#dbeafe;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:1.3rem;flex-shrink:0;">
+                <i class="fas fa-user-tag"></i>
+            </div>
+            <div>
+                <div style="font-size:.78rem;color:#94a3b8;font-weight:500;">Vendedores</div>
+                <div style="font-size:1.6rem;font-weight:800;color:#1e293b;line-height:1.1;"><?= $totalVendedores ?></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones rapidas -->
+    <div class="dash-card">
+        <div class="card-title"><i class="fas fa-bolt"></i> Acciones R&aacute;pidas</div>
+        <div class="gqa">
+            <a href="/inventory/controllers/adminusuariocontroller.php?accion=index" class="qa-btn">
+                <div class="qa-icon" style="background:#dbeafe;color:#1e3a8a;"><i class="fas fa-users"></i></div>
+                Usuarios
+            </a>
+            <a href="/inventory/controllers/adminproductoscontroller.php?accion=index" class="qa-btn">
+                <div class="qa-icon" style="background:#dbeafe;color:#2563eb;"><i class="fas fa-plus-circle"></i></div>
+                Nuevo Producto
+            </a>
+            <a href="/inventory/controllers/admincategoriascontroller.php?accion=index" class="qa-btn">
+                <div class="qa-icon" style="background:#dcfce7;color:#16a34a;"><i class="fas fa-tags"></i></div>
+                Nueva Categor&iacute;a
+            </a>
+            <a href="/inventory/controllers/admincomprascontroller.php?accion=index" class="qa-btn">
+                <div class="qa-icon" style="background:#fef3c7;color:#d97706;"><i class="fas fa-cart-flatbed"></i></div>
+                Nueva Compra
+            </a>
+        </div>
+    </div>
+
+    <!-- Ultimos usuarios + Alertas -->
+    <div class="g2">
+
+        <div class="dash-card">
+            <div class="card-title">
+                <i class="fas fa-user-clock"></i> &Uacute;ltimos Usuarios
+                <a href="/inventory/controllers/adminusuariocontroller.php?accion=index"
+                   style="margin-left:auto;font-size:.75rem;color:#1e3a8a;text-decoration:none;font-weight:600;">
+                    Ver todos <i class="fas fa-arrow-right" style="font-size:.65rem;"></i>
+                </a>
+            </div>
+            <?php if (empty($ultimosUsuarios)): ?>
+                <p style="font-size:.85rem;color:#94a3b8;text-align:center;padding:1.5rem 0;">
+                    No hay usuarios registrados a&uacute;n.
+                </p>
+            <?php else: ?>
+                <table class="u-table">
+                    <thead>
+                        <tr><th>Usuario</th><th>Correo</th><th>Rol</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($ultimosUsuarios as $u):
+                            $nombreU   = $u['nombre'] ?? '—';
+                            $iniciales = strtoupper(substr($nombreU, 0, 2));
+                            $esAdmin   = ($u['rol'] ?? '') === 'administrador';
+                        ?>
+                        <tr>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:.6rem;">
+                                    <div class="avatar-sm"><?= htmlspecialchars($iniciales) ?></div>
+                                    <span style="font-weight:600;font-size:.83rem;"><?= htmlspecialchars($nombreU) ?></span>
+                                </div>
+                            </td>
+                            <td style="color:#64748b;"><?= htmlspecialchars($u['correo'] ?? '') ?></td>
+                            <td>
+                                <span class="role-badge <?= $esAdmin ? 'role-admin' : 'role-vendedor' ?>">
+                                    <i class="fas <?= $esAdmin ? 'fa-user-shield' : 'fa-user-tag' ?>" style="font-size:.6rem;"></i>
+                                    <?= htmlspecialchars(ucfirst($u['rol'] ?? '')) ?>
+                                </span>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:1.1rem;">
+            <div class="dash-card">
+                <div class="card-title">
+                    <i class="fas fa-triangle-exclamation" style="color:#f59e0b;"></i> Alertas del Sistema
+                </div>
+                <?php if ($stockBajo > 0): ?>
+                    <div class="stock-alert">
+                        <i class="fas fa-box-open"></i>
+                        <div>
+                            <strong><?= $stockBajo ?> producto<?= $stockBajo !== 1 ? 's' : '' ?></strong>
+                            con stock igual o por debajo del m&iacute;nimo.
+                            <a href="/inventory/controllers/adminproductoscontroller.php?accion=index" style="color:#92400e;font-weight:700;margin-left:.3rem;">
+                                Ver &rarr;
+                            </a>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div style="display:flex;align-items:center;gap:.6rem;padding:.7rem .85rem;
+                                border-radius:10px;background:#dcfce7;border:1px solid #bbf7d0;
+                                font-size:.82rem;color:#166534;">
+                        <i class="fas fa-check-circle" style="color:#16a34a;"></i>
+                        Todo el stock est&aacute; en niveles normales.
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="dash-card">
+                <div class="card-title"><i class="fas fa-chart-pie"></i> Resumen General</div>
+                <div style="display:flex;flex-direction:column;gap:.6rem;">
+                    <?php
+                    $items = [
+                        ['label' => 'Productos en inventario', 'value' => $totalProductos,  'icon' => 'fa-box-open', 'color' => '#1e3a8a'],
+                        ['label' => 'Categor&iacute;as',       'value' => $totalCategorias, 'icon' => 'fa-tags',     'color' => '#10b981'],
+                        ['label' => 'Usuarios del sistema',    'value' => $totalUsuarios,   'icon' => 'fa-users',    'color' => '#3b82f6'],
+                    ];
+                    foreach ($items as $item): ?>
+                        <div style="display:flex;align-items:center;justify-content:space-between;
+                                    padding:.5rem .6rem;border-radius:8px;background:#f8fafc;">
+                            <div style="display:flex;align-items:center;gap:.6rem;font-size:.82rem;color:#475569;">
+                                <i class="fas <?= $item['icon'] ?>" style="color:<?= $item['color'] ?>;width:16px;text-align:center;"></i>
+                                <?= $item['label'] ?>
+                            </div>
+                            <span style="font-size:.85rem;font-weight:700;color:#1e293b;"><?= $item['value'] ?></span>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>
     </div>
 
-</div><!-- end space-y-6 -->
+</div><!-- end gap -->
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+
+
+
+
+
+

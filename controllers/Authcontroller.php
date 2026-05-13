@@ -70,17 +70,40 @@ class Authcontroller {
 
         // REDIRECCIÓN
         if ($rol === 'administrador') {
-            header("Location: ../views/dashboard/administrador.php");
+            header("Location: ../controllers/dashboardadmincontroller.php");
         } else {
-            header("Location: ../views/dashboard/vendedor.php");
+            header("Location: ../controllers/vendedorcontroller.php");
         }
 
+        exit;
+    }
+
+    public function logout() {
+        // Destruir la sesión completamente
+        $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+        session_destroy();
+
+        // Redirigir al index con mensaje de éxito
+        header("Location: ../public/index.php?logout=1");
         exit;
     }
 }
 
 // EJECUCIÓN
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$accion = $_GET['accion'] ?? '';
+
+if ($accion === 'logout') {
+    $controller = new Authcontroller();
+    $controller->logout();
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new Authcontroller();
     $controller->login();
 }

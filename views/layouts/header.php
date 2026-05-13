@@ -19,6 +19,7 @@ $titulo = $titulo ?? 'Dashboard';
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/inventory/img/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($titulo) ?> - Inventory System</title>
     
@@ -29,8 +30,8 @@ $titulo = $titulo ?? 'Dashboard';
     
     <style>
         :root {
-            --primary-color: #4f46e5;
-            --primary-dark: #4338ca;
+            --primary-color: #11225a;
+            --primary-dark: #1e3a8a;
             --secondary-color: #06b6d4;
             --accent-color: #f59e0b;
             --success-color: #10b981;
@@ -50,9 +51,11 @@ $titulo = $titulo ?? 'Dashboard';
             box-sizing: border-box;
         }
 
-        body {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            min-height: 100vh;
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #0f172a;
         }
 
         /* Custom Scrollbar */
@@ -405,11 +408,11 @@ $titulo = $titulo ?? 'Dashboard';
         }
 
         .bg-blue-700 {
-            background-color: #1d4ed8;
+            background-color: #1e3a8a;
         }
 
         .bg-blue-800 {
-            background-color: #1e40af;
+            background-color: #11225a;
         }
 
         .bg-sky-700 {
@@ -558,7 +561,7 @@ $titulo = $titulo ?? 'Dashboard';
         }
 
         .hover\:bg-blue-700:hover {
-            background-color: #1d4ed8;
+            background-color: #1e3a8a;
         }
 
         .hover\:bg-blue-600:hover {
@@ -886,11 +889,11 @@ $titulo = $titulo ?? 'Dashboard';
         }
 
         .to-blue-800 {
-            --gradient-to: #1e40af;
+            --gradient-to: #11225a;
         }
 
         .from-blue-800 {
-            --gradient-from: #1e40af;
+            --gradient-from: #11225a;
         }
 
         .to-sky-700 {
@@ -1011,5 +1014,10 @@ $titulo = $titulo ?? 'Dashboard';
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body>
+
+
+
+
+
 

@@ -1,15 +1,21 @@
-<?php
+﻿<?php
 session_start();
 
 // ALERTA
 $alert = $_SESSION['alert'] ?? null;
 unset($_SESSION['alert']);
+
+// Alerta de cierre de sesión
+if (!$alert && isset($_GET['logout'])) {
+    $alert = ['type' => 'success', 'text' => 'Has cerrado sesión exitosamente.'];
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/inventory/img/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory System - Iniciar Sesión</title>
     
@@ -22,8 +28,8 @@ unset($_SESSION['alert']);
     
     <style>
         :root {
-            --primary-color: #4f46e5;
-            --primary-dark: #4338ca;
+            --primary-color: #11225a;
+            --primary-dark: #1e3a8a;
             --secondary-color: #06b6d4;
             --success-color: #10b981;
             --danger-color: #ef4444;
@@ -51,7 +57,7 @@ unset($_SESSION['alert']);
         .login-container {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18), 0 8px 25px rgba(0, 0, 0, 0.12);
             overflow: hidden;
             max-width: 950px;
             width: 100%;
@@ -346,10 +352,14 @@ unset($_SESSION['alert']);
                 </button>
             </form>
 
-            <div class="forgot-password">
-                <a href="#">
-                    <i class="bi bi-question-circle me-1"></i>
-                    ¿Olvidaste tu contraseña?
+            <div style="text-align:center;margin-top:.75rem;">
+                <a href="../../public/index.php"
+                   style="font-size:13px;color:#94a3b8;text-decoration:none;
+                          display:inline-flex;align-items:center;gap:.3rem;
+                          transition:color .2s;"
+                   onmouseover="this.style.color='#11225a'"
+                   onmouseout="this.style.color='#94a3b8'">
+                    <i class="bi bi-arrow-left"></i> Volver al inicio
                 </a>
             </div>
         </div>
@@ -415,3 +425,5 @@ document.querySelectorAll('.form-control').forEach(function(input) {
 
 </body>
 </html>
+
+
