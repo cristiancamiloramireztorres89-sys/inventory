@@ -2,12 +2,12 @@
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../models/Usuario.php';
+require_once __DIR__ . '/../models/usuario.php';
 require_once __DIR__ . '/../models/Dashboard.php';
 
 // Solo administrador
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'administrador') {
-    header("Location: ../views/usuarios/login.php");
+    header("Location: " . BASE_URL . "/views/usuarios/login.php");
     exit;
 }
 

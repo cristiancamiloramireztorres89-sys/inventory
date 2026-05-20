@@ -7,7 +7,7 @@ require_once __DIR__ . '/../models/adminventa.php';
 // Solo administrador o vendedor
 if (!isset($_SESSION['usuario']) ||
     !in_array($_SESSION['usuario']['rol'], ['administrador', 'vendedor'])) {
-    header("Location: ../views/usuarios/login.php");
+    header("Location: " . BASE_URL . "/views/usuarios/login.php");
     exit;
 }
 

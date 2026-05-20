@@ -2,13 +2,13 @@
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../models/Usuario.php';
+require_once __DIR__ . '/../models/usuario.php';
 require_once __DIR__ . '/../models/vendedorproducto.php';
 require_once __DIR__ . '/../models/vendedorventa.php';
 
 // Solo vendedor
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'vendedor') {
-    header("Location: ../views/usuarios/login.php");
+    header("Location: " . BASE_URL . "/views/usuarios/login.php");
     exit;
 }
 
