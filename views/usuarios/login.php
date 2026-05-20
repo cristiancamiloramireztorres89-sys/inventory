@@ -61,8 +61,13 @@ if (!$alert && isset($_GET['logout'])) {
             overflow: hidden;
             max-width: 950px;
             width: 100%;
-            min-height: 480px;
+            min-height: 520px;
             animation: slideUp 0.6s ease-out;
+        }
+
+        .login-container .row {
+            min-height: 520px;
+            align-items: stretch;
         }
 
         @keyframes slideUp {
@@ -78,11 +83,11 @@ if (!$alert && isset($_GET['logout'])) {
 
         .login-left {
             background: white;
-            padding: 20px 40px 50px 40px;
+            padding: 80px 40px 50px 40px;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            padding-top: 20px;
+            justify-content: center;
+            min-height: 520px;
         }
 
         .login-right {
@@ -94,6 +99,7 @@ if (!$alert && isset($_GET['logout'])) {
             justify-content: center;
             position: relative;
             overflow: hidden;
+            min-height: 520px;
         }
 
         .login-right::before {
@@ -317,10 +323,6 @@ if (!$alert && isset($_GET['logout'])) {
     <div class="row g-0 h-100">
         <!-- IZQUIERDA - FORMULARIO -->
         <div class="col-lg-6 login-left">
-            <div class="logo-container">
-                <img src="../../img/logo.png" alt="Inventory System Logo">
-            </div>
-            
             <h2 class="form-title">Bienvenido de nuevo</h2>
             <p class="form-subtitle">Ingresa tus credenciales para acceder al sistema</p>
 
